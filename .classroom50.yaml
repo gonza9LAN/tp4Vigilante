@@ -1,0 +1,12 @@
+schema: "classroom50/repo-config/v1"
+classroom: "programacion-sobre-redes"
+assignment: "tp4"
+owner:
+  username: "Santiago9-12-18-4-3-1"
+  id: 179855456
+  accepted_at: "2026-10-05T22:07:34Z"
+source:
+  owner: "programacion-sobre-redes"
+  owner_id: 202198510
+  repo: "tp4-2026"
+  branch: "main"

@@ -1,131 +1,71 @@
-# TP3: la computadora de a bordo
+# TP4: la orquesta de autómatas
 
-Guía para compilar, correr y probar este TP. La consigna está en `consigna.pdf`.
+Lean primero `consigna.pdf` y después `contrato.md`.
 
-## Estructura
+## Qué hay
 
-- `nave.cpp`: la estructura ya está armada. Faltan seis métodos marcados con
-  `TODO`, que es donde está el IPC. El encabezado dice en qué orden hacerlos.
-- `subsistema_main.cpp`: el parseo y la creación del `Subsystem`. Falta el loop.
-- `tierra.cpp`: **viene hecho**. Léanlo.
-- `ipc/`: los helpers de IPC. Cinco funciones están **vacías y las completan
-  ustedes en la parte 0**; los tests de `ctest` las verifican. El resto viene
-  hecho.
-- `sim/`: la clase `Subsystem`, que simula el desgaste y las fallas. **No la
-  modifiquen.**
-- `ejemplo/`: `lanzar.cpp` e `hijo.cpp`, el patrón `fork` + `exec` + `dup2` para
-  lanzar otro programa y hablarle por pipes. Anda desde el primer día.
-- `tests/`: `tests.cpp` prueba `ipc/` y `Subsystem`; `integracion.py` prueba
-  el contrato con la nave corriendo. **No los modifiquen.**
-- `caos/`: la tormenta solar (`caos.py`) y el verificador de la caja negra.
-- `caja_negra/`: la crea la nave al correr. Está en el `.gitignore`.
+- `contrato.md`: los mensajes entre el músico, el teatro y el instrumento.
+- `teatro/teatro.py`: el teatro, para correr en su máquina mientras desarrollan.
+- `instrumento/instrumento.py`: el instrumento, uno por músico.
+- `tablas/`: las tablas de digitación de los ocho instrumentos y la del piano
+  (bonus).
+- `obras/`: la escala y las obras. Ver `obras/README.md`.
+- `probar.py`: el verificador, el mismo que usa la cátedra.
+- `cheatsheet.md`, `cheatsheet_python.md`, `cheatsheet_js.md`: UDP y
+  multiplexación en C++, Python y JavaScript.
+- `ejemplo/`: un ping-pong UDP en los tres lenguajes.
+- `correr.sh`: el lanzador de su músico. Es lo único de su código que conoce
+  el verificador.
 
-## Compilar
+El músico lo escriben ustedes desde cero.
 
-```bash
-cmake -S . -B build
-cmake --build build
-```
+## Teatro e instrumento
 
-Targets: `nave`, `subsistema`, `tierra`, `ejemplo_lanzar`, `ejemplo_hijo`,
-`tp_tests`. Para uno solo: `cmake --build build --target nave`.
-
-## Correr
-
-Todo se corre desde `build/`, porque la nave busca a `subsistema` en su misma
-carpeta.
+En tres terminales, desde esta carpeta:
 
 ```bash
-cd build
-./nave                # caja negra en ./caja_negra
-./nave --falla 0      # subsistemas que no se rompen solos, para debuggear
+python3 teatro/teatro.py                                   # TCP 5100, UDP 5101, sala en http://localhost:5102/
+python3 instrumento/instrumento.py --tipo flauta --musico flauta1 --puerto 6000
+./correr.sh flauta1 flauta 127.0.0.1:5100 127.0.0.1:6000  # su músico
 ```
 
-En otra terminal, también desde `build/`:
+En la consola del teatro, `empezar` arranca la obra. Los otros comandos son
+`parar`, `desde N`, `tempo N`, `dinamica N`, `estado`, `informe` y `salir`.
+Por defecto toca `obras/fray_santiago.txt`; con `--obra obras/escala.txt` se
+prueba nota por nota.
+
+La sala (http://localhost:5102/) muestra la partitura y el instrumento de cada
+músico. Para escuchar hay que apretar el botón del parlante. En la partitura,
+las notas esperadas están huecas y las que sonaron van en verde (a tiempo),
+ocre (tarde), violeta (extraña) o con una cruz roja (sucia). En los
+instrumentos, los dedos de la mano izquierda van en azul y los de la derecha
+en terracota: llenos si están abajo, huecos si están arriba y punteados
+mientras se mueven. Un click en un instrumento lo agranda.
+
+El instrumento acepta `--perdida p`, `--duplicados p` y `--desorden p`.
+Conviene probar con caos desde el principio.
+
+## Verificador
 
 ```bash
-./tierra ver                    # el tablero de Control de Misión
-./tierra ordenar REPARAR todos
-./tierra ordenar REPARAR reactor
-./tierra ordenar ABORTAR
+python3 probar.py                        # su correr.sh, flauta y violín, todos los niveles
+python3 probar.py --tipos clarinete,cello
+python3 probar.py --nivel 0
+python3 probar.py --intentos 1           # sin repetir
 ```
 
-Un subsistema se puede probar solo, con el teclado:
+Toca la obra entera en cada nivel, muestra lo que midió el teatro y si pasa
+los umbrales (están al principio de `probar.py`), y deja
+`informe_verificador.json` y los logs en `verificador_logs/`. El nivel 3 es la
+guitarra con acordes, sin caos. Si un nivel no pasa, se repite hasta tres
+veces y vale el mejor intento.
 
-```bash
-./subsistema reactor --periodo 1000
-REPARAR
-```
+El verificador levanta dos músicos a la vez con el mismo `correr.sh`. Si el
+script compila al arrancar, las dos compilaciones se pisan: compilen antes o
+usen un lock.
 
-Y el ejemplo de `fork` + `exec` + `dup2`:
+## Puertos
 
-```bash
-./ejemplo_lanzar ./ejemplo_hijo
-```
-
-## Tests
-
-Los de `ctest` prueban las funciones de `ipc/` (fallan hasta que las completen)
-y la clase `Subsystem` (pasan desde el principio):
-
-```bash
-cmake --build build --target tp_tests
-cd build && ctest --output-on-failure
-```
-
-Los de integración levantan la nave de verdad, le hacen cosas (matan un
-subsistema, le mandan órdenes, le hacen Ctrl+C) y verifican el contrato mirando
-la caja negra y los procesos. Fallan hasta que implementen cada parte:
-
-```bash
-python3 tests/integracion.py build             # todos
-python3 tests/integracion.py build reinicio    # uno solo
-python3 tests/integracion.py build -v          # muestra la salida de la nave si falla
-```
-
-Para revisar una caja negra a mano, o vigilar que el snapshot nunca se vea
-roto (pregunta 1 de la parte 2):
-
-```bash
-python3 caos/verificar_caja_negra.py build/caja_negra
-python3 caos/verificar_caja_negra.py build/caja_negra --vigilar 10
-```
-
-La tormenta solar, una vez que la nave anda:
-
-```bash
-python3 caos/caos.py build
-```
-
-## El contrato, en corto
-
-Lo que es fijo, porque lo usan `tierra`, los tests y `caos`. El detalle está en
-la consigna.
-
-- `caja_negra/nave.pid`: el PID de la nave. Se crea al arrancar y se borra al
-  apagarse bien.
-- `caja_negra/estado.txt`: el snapshot, escrito de forma atómica al menos una
-  vez por segundo, con la última línea `FIN`:
-
-  ```text
-  ultima_orden=7
-  subsistema=reactor OK 71.3 4242
-  subsistema=soporte_vital ALERTA 28.0 4243
-  subsistema=navegacion CAIDO - -
-  subsistema=comunicaciones CRITICO 8.1 4245
-  FIN
-  ```
-
-- `caja_negra/bitacora.log`: una línea por evento, solo se agrega.
-- `caja_negra/ordenes.txt`: una orden por línea, numeradas desde 1:
-  `REPARAR <rol|todos>` o `ABORTAR`.
-- Señales a la nave: `SIGTERM` o `SIGINT` apagan ordenadamente, `SIGUSR1` avisa
-  que hay órdenes nuevas. Al subsistema: `SIGTERM` lo termina con código 0.
-- Un subsistema que falla termina en el acto con código 2.
-
-## Cuando algo queda colgado
-
-```bash
-ps -ef | grep -E 'nave|subsistema'   # ver qué quedó vivo
-pkill -f subsistema; pkill -f nave   # matar todo
-```
+El teatro usa 5100 (TCP), 5101 (UDP) y 5102 (la sala); los instrumentos, del
+6000 en adelante. El teatro y el instrumento aceptan `--puerto`; el
+verificador usa siempre esos.

@@ -1,0 +1,36 @@
+# Tabla de digitación de contrabajo (cuerda), primera posición. ES INVENTADA, pero consistente.
+# Formato: pitch cuerda dedo posicion. posicion = semitonos sobre la cuerda al aire,
+# dedo 0 = cuerda al aire. La mano derecha es el arco o la púa y no digita.
+# Si una nota está en varias cuerdas, la primera fila es la preferida (la posición más baja).
+FAMILIA cuerda
+MANOS izq:4
+MODO arco
+CUERDAS E:28 A:33 D:38 G:43
+28 E 0 0
+29 E 1 1
+30 E 1 2
+31 E 2 3
+32 E 2 4
+33 A 0 0
+33 E 3 5
+34 A 1 1
+34 E 4 6
+35 A 1 2
+36 A 2 3
+37 A 2 4
+38 D 0 0
+38 A 3 5
+39 D 1 1
+39 A 4 6
+40 D 1 2
+41 D 2 3
+42 D 2 4
+43 G 0 0
+43 D 3 5
+44 G 1 1
+44 D 4 6
+45 G 1 2
+46 G 2 3
+47 G 2 4
+48 G 3 5
+49 G 4 6

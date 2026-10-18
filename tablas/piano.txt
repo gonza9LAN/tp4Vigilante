@@ -1,0 +1,5 @@
+# Piano (teclado). Cada dedo aprieta una tecla con una fuerza; el pie es el pedal.
+FAMILIA teclado
+MANOS izq:5 der:5
+RANGO 36 96
+ANCHO 12

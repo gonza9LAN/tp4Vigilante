@@ -1,0 +1,804 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>La sala del Gran Teatro Mecánico</title>
+<style>
+  :root { --papel: #ece3cf; --tinta: #2b2520; --tenue: #6b6050; --leve: #b9ad94; --regla: #c9bda3;
+          --izq: #2f5f9e; --der: #b0582c; --ok: #3f7a4a; --tarde: #b98a1e; --extra: #7a4c9e; --mal: #b8322c; }
+  * { box-sizing: border-box; }
+  body { font-family: "Iowan Old Style", "Palatino Linotype", Palatino, "Book Antiqua", Georgia, "Times New Roman", serif; font-size: 14px; margin: 0; background: var(--papel); color: var(--tinta); min-height: 100vh; }
+  i { font-style: italic; }
+  .cifra, .beat, .cuentas, .resumen b { font-variant-numeric: tabular-nums lining-nums; }
+  header { display: grid; grid-template-columns: 1fr auto 1fr; align-items: end; gap: 1.5rem; padding: .8rem 2rem .6rem; border-bottom: 3px double var(--tinta); position: sticky; top: 0; background: var(--papel); z-index: 2; }
+  .marquesina h1 { margin: 0; font-size: 26px; font-weight: normal; font-style: italic; line-height: 1.1; white-space: nowrap; }
+  .programa { text-align: center; min-width: 0; align-self: center; }
+  .programa .obra { font-size: 19px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; height: 24px; line-height: 24px; }
+  .programa .obra.vacia { color: var(--tenue); font-style: italic; }
+  .programa .sena { font-size: 14px; font-style: italic; color: var(--tenue); height: 18px; line-height: 18px; opacity: 0; transition: opacity .3s; }
+  .programa .sena.visible { opacity: 1; }
+  .reloj { display: flex; align-items: center; justify-content: flex-end; gap: 1.2rem; }
+  .reloj .cifras { text-align: right; line-height: 1; }
+  .reloj .beat { font-size: 36px; min-width: 6rem; }
+  .reloj .compas { font-size: 12px; color: var(--tenue); margin-top: 4px; white-space: nowrap; }
+  #metro { width: 26px; height: 40px; overflow: visible; }
+  #metro #vara { transform-origin: 13px 36px; transition: transform .17s ease-in-out; }
+  #metro.parado #vara { transform: rotate(0deg) !important; stroke: var(--leve); fill: var(--leve); }
+  button#sonar { width: 32px; height: 32px; padding: 0; display: grid; place-items: center; background: transparent; color: var(--tinta); border: 1px solid var(--tinta); border-radius: 0; cursor: pointer; }
+  button#sonar .ondas { display: none; } button#sonar.andando .ondas { display: inline; } button#sonar.andando .tachado { display: none; }
+  button#sonar:hover { background: #e2d8c0; }
+  button#sonar.andando { background: var(--tinta); color: var(--papel); }
+  .resumen { display: flex; gap: 1.6rem; padding: .45rem 2rem; border-bottom: 1px solid var(--tinta); font-size: 14px; white-space: nowrap; }
+  .resumen i { color: var(--tenue); }
+  .resumen b { font-weight: normal; display: inline-block; min-width: 2.2em; }
+  .resumen .mal b { color: var(--mal); }
+  #vacio { padding: 3rem 2rem; color: var(--tenue); text-align: center; font-style: italic; font-size: 15px; }
+  .figura { padding: 0 2rem; }
+  .figura .titulo { display: flex; justify-content: space-between; align-items: baseline; border-bottom: 1px solid var(--tinta); padding: .9rem 0 .2rem; }
+  .figura .titulo i { font-size: 13px; color: var(--tinta); }
+  #roll { width: 100%; display: block; margin-top: 6px; }
+  .leyenda { font-size: 12px; color: var(--tenue); padding: .35rem 2rem .6rem; display: flex; gap: 1.1rem; flex-wrap: wrap; }
+  .leyenda i { display: inline-block; width: 9px; height: 6.5px; border-radius: 50%; margin-right: .35rem; vertical-align: middle; transform: rotate(-20deg); }
+  .leyenda i.hueca { border: 1px solid var(--tinta); }
+  .leyenda .ayuda { margin-left: auto; }
+  #foco { padding: .3rem 2rem 0; }
+  #foco:empty { display: none; }
+  #foco .panel { max-width: 920px; margin: 0 auto; cursor: default; position: relative; }
+  #foco .panel.teclado { max-width: none; }
+  #foco .panel .cerrar { position: absolute; top: .9rem; right: 0; height: 26px; padding: 0 8px; border: 1px solid var(--tinta); background: transparent; color: var(--tinta); font: italic 12px inherit; font-family: inherit; cursor: pointer; }
+  #foco .panel .cerrar:hover { background: #e2d8c0; }
+  #foco .panel .cab { padding-right: 5rem; }
+  #foco .panel .pie { font-size: 14px; }
+  #paneles { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); column-gap: 2rem; row-gap: .4rem; padding: .3rem 2rem 1rem; }
+  .panel { cursor: pointer; display: flex; flex-direction: column; padding-top: .6rem; }
+  .panel:hover .cab b { text-decoration: underline; text-underline-offset: 3px; }
+  .panel.teclado { grid-column: 1 / -1; }
+  @media (min-width: 700px) { #paneles .panel.viento { grid-column: span 2; } }
+  .panel .cab { display: flex; justify-content: space-between; align-items: baseline; gap: .6rem; border-bottom: 1px solid var(--tinta); padding-bottom: 2px; height: 1.7rem; white-space: nowrap; overflow: hidden; }
+  .panel .cab b { font-weight: normal; font-size: 16px; }
+  .panel .cab .fig { font-style: italic; font-size: 13px; margin-right: .3rem; }
+  .panel .cab .tipo { font-style: italic; font-size: 13px; color: var(--tenue); overflow: hidden; text-overflow: ellipsis; }
+  .panel .dibujo { flex: 1; display: flex; align-items: center; }
+  .panel svg { width: 100%; height: auto; display: block; margin: .4rem 0 .1rem; }
+  .panel .pie { display: flex; justify-content: space-between; align-items: baseline; gap: .8rem; font-size: 12.5px; border-top: 1px solid var(--regla); padding-top: 3px; height: 1.6rem; }
+  .panel .pie .nota { min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .panel .pie .nota.sucia { color: var(--mal); }
+  .panel .pie i { color: var(--tenue); }
+  .panel .cuentas { display: flex; gap: .55rem; white-space: nowrap; flex: none; }
+  .panel .cuentas span b { font-weight: normal; display: inline-block; min-width: 1.4em; text-align: right; }
+  .panel .cuentas .mal b { color: var(--mal); }
+  details { margin: 0 2rem 1.2rem; border-top: 1px solid var(--tinta); }
+  details summary { cursor: pointer; padding: .5rem 0; color: var(--tenue); font-style: italic; font-size: 13px; }
+  #log { font-family: Menlo, Consolas, monospace; font-size: 11.5px; color: var(--tenue); white-space: pre; max-height: 12rem; overflow: auto; margin: 0; padding: 0 0 .7rem; }
+</style>
+</head>
+<body>
+<header>
+  <div class="marquesina"><h1>El Gran Teatro Mecánico</h1></div>
+  <div class="programa"><div class="obra vacia" id="obra">esperando al director</div><div class="sena" id="sena"></div></div>
+  <div class="reloj">
+    <button id="sonar" title="activar el sonido" aria-label="activar el sonido"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9v6h4l5 4V5L8 9H4z"/><g class="ondas"><path d="M16 9.5a3.5 3.5 0 0 1 0 5"/><path d="M18.5 7a7 7 0 0 1 0 10"/></g><g class="tachado"><path d="M17 9.5l4 5"/><path d="M21 9.5l-4 5"/></g></svg></button>
+    <svg id="metro" class="parado" viewBox="0 0 26 40" aria-hidden="true">
+      <path d="M5 38 L9 4 H17 L21 38 Z" fill="none" stroke="#2b2520" stroke-width="1.2"/>
+      <g id="vara" stroke="#2b2520" fill="#2b2520"><line x1="13" y1="36" x2="13" y2="8" stroke-width="1.2"/><rect x="10.5" y="12" width="5" height="5"/></g>
+    </svg>
+    <div class="cifras"><div class="beat" id="beat">0.00</div><div class="compas" id="compas">parado, 120 bpm</div></div>
+  </div>
+</header>
+<div class="resumen">
+  <span><i>músicos</i> <b id="r-musicos">0</b></span>
+  <span><i>sonando</i> <b id="r-sonando">0</b></span>
+  <span><i>a tiempo</i> <b id="r-ok">0</b></span>
+  <span><i>tarde</i> <b id="r-tarde">0</b></span>
+  <span class="mal"><i>sucias</i> <b id="r-sucias">0</b></span>
+  <span><i>torpezas</i> <b id="r-torpezas">0</b></span>
+</div>
+<div id="vacio">lámina en blanco: todavía no llegó ningún músico. cuando un cerebro se registre en el teatro, aparece acá.</div>
+<section class="figura" id="rollo">
+  <div class="titulo"><i>Fig. 1. la partitura</i></div>
+  <canvas id="roll" width="1400" height="120"></canvas>
+</section>
+<div class="leyenda"><span><i class="hueca"></i>esperada</span><span><i style="background:var(--ok)"></i>a tiempo</span><span><i style="background:var(--tarde)"></i>tarde</span><span><i style="background:var(--extra)"></i>extraña</span><span style="color:var(--mal)">× sucia</span><span class="ayuda">click en una figura para ampliarla</span></div>
+<section id="foco"></section>
+<section id="paneles"></section>
+<details><summary>bitácora</summary><pre id="log"></pre></details>
+<script>
+"use strict";
+const INK = "#2b2520", DIM = "#6b6050", FAINT = "#b9ad94", IZQ = "#2f5f9e", DER = "#b0582c", OK = "#3f7a4a", TARDE = "#b98a1e", EXTRA = "#7a4c9e", MAL = "#b8322c";
+const SERIF = '"Iowan Old Style","Palatino Linotype",Palatino,"Book Antiqua",Georgia,serif';
+// reloj
+const clock = { beat: 0, tempo: 120, running: false, at: performance.now() };
+function beatNow() {
+  return clock.running ? clock.beat + (performance.now() - clock.at) / 1000 * clock.tempo / 60 : clock.beat;
+}
+let lastWhole = null, lado = 1;
+function tickUI() {
+  const b = beatNow();
+  document.getElementById("beat").textContent = b.toFixed(2);
+  const compas = Math.floor(b / 4) + 1, tiempo = ((Math.floor(b) % 4) + 4) % 4 + 1;
+  document.getElementById("compas").textContent = clock.running ? `compás ${compas}, tiempo ${tiempo}, ${clock.tempo} bpm` : `parado, ${clock.tempo} bpm`;
+  const m = document.getElementById("metro");
+  m.classList.toggle("parado", !clock.running);
+  const w = Math.floor(b);
+  if (w !== lastWhole && clock.running) { lastWhole = w; lado = -lado; document.getElementById("vara").style.transform = `rotate(${lado * 16}deg)`; }
+  resumen();
+}
+function resumen() {
+  const ms = Object.values(musicos);
+  const cuenta = c => ms.reduce((n, m) => n + m.tocadas.filter(t => t.clase === c).length, 0);
+  document.getElementById("r-musicos").textContent = ms.length;
+  document.getElementById("r-sonando").textContent = ms.filter(m => Object.keys(m.activas).length).length;
+  document.getElementById("r-ok").textContent = cuenta("ok");
+  document.getElementById("r-tarde").textContent = cuenta("tarde");
+  document.getElementById("r-sucias").textContent = cuenta("sucia");
+  document.getElementById("r-torpezas").textContent = ms.reduce((n, m) => n + (m.estado ? m.estado.torpezas : 0), 0);
+  document.getElementById("vacio").style.display = ms.length ? "none" : "";
+}
+
+// músicos
+const musicos = {};
+let figuras = 1;   // la Fig. 1 es la partitura
+const LEYENDA = { flauta: "flauta de perfil, con su fuelle", clarinete: "clarinete de perfil, con su fuelle", trompeta: "trompeta, pistones y llaves, con su fuelle",
+                  violin: "violín, diapasón y arco", viola: "viola, diapasón y arco", cello: "cello, diapasón y arco", contrabajo: "contrabajo, diapasón y arco",
+                  guitarra: "guitarra, diapasón y púa", piano: "piano, teclado de 61 teclas y pedal" };
+function familiaDe(tipo) {
+  if (["flauta", "clarinete", "trompeta"].includes(tipo)) return "viento";
+  if (tipo === "piano") return "teclado";
+  return "cuerda";
+}
+function asegurar(nombre, tipo) {
+  if (!musicos[nombre]) {
+    musicos[nombre] = { nombre, tipo, familia: familiaDe(tipo), parte: [], tocadas: [], estado: null, fig: ++figuras,
+                        sucios: 0, ataques: 0, voces: {}, prev: {}, activas: {}, sucioHasta: 0 };
+    const div = document.createElement("div");
+    div.className = "panel " + musicos[nombre].familia;
+    div.id = "p-" + nombre;
+    div.innerHTML = `<div class="cab"><span><span class="fig">Fig. ${figuras}.</span><b>${nombre}</b></span><span class="tipo">${LEYENDA[tipo] || tipo}</span></div><div class="dibujo"></div>
+      <div class="pie"><span class="nota">silencio</span><span class="cuentas"><span title="a tiempo"><i>a tiempo</i> <b>0</b></span><span title="tarde"><i>tarde</i> <b>0</b></span><span title="extrañas"><i>extr.</i> <b>0</b></span><span class="mal" title="sucias"><i>sucias</i> <b>0</b></span><span title="torpezas"><i>torp.</i> <b>0</b></span></span></div>`;
+    document.getElementById("paneles").appendChild(div);
+    div.addEventListener("click", ev => { if (!ev.target.closest(".cerrar")) ampliar(nombre); });
+    render(musicos[nombre]);
+    ajustarRollo();
+  }
+  return musicos[nombre];
+}
+
+let ampliado = null;   // el músico en el foco y dónde devolverlo
+function ampliar(nombre) {
+  if (ampliado && ampliado.nombre === nombre) return;
+  if (ampliado) cerrarFoco();
+  const div = document.getElementById("p-" + nombre);
+  if (!div) return;
+  ampliado = { nombre, siguiente: div.nextSibling };
+  const x = document.createElement("button"); x.className = "cerrar"; x.title = "volver a la lámina"; x.textContent = "volver";
+  x.addEventListener("click", cerrarFoco);
+  div.appendChild(x);
+  document.getElementById("foco").appendChild(div);
+}
+function cerrarFoco() {
+  if (!ampliado) return;
+  const div = document.getElementById("p-" + ampliado.nombre);
+  div.querySelector(".cerrar").remove();
+  document.getElementById("paneles").insertBefore(div, ampliado.siguiente);
+  ampliado = null;
+}
+
+// audio
+let ctx = null, master = null, noiseBuf = null;
+const freq = p => 440 * Math.pow(2, (p - 69) / 12);
+const bufCache = {};
+
+function arrancarAudio() {
+  ctx = new (window.AudioContext || window.webkitAudioContext)();
+  const comp = ctx.createDynamicsCompressor();
+  comp.threshold.value = -18; comp.ratio.value = 4;
+  comp.connect(ctx.destination);
+  noiseBuf = ctx.createBuffer(1, ctx.sampleRate * 2, ctx.sampleRate);
+  const d = noiseBuf.getChannelData(0);
+  for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
+  // master directo y, en paralelo, por una reverb corta
+  master = ctx.createGain(); master.gain.value = 0.7; master.connect(comp);
+  const sala = ctx.createConvolver(); sala.buffer = irSala();
+  const mojado = ctx.createGain(); mojado.gain.value = 0.16;
+  master.connect(sala).connect(mojado).connect(comp);
+
+}
+
+// vientos y cuerdas frotadas; los parámetros de cada instrumento están en PERFIL
+const PERFIL = {
+  flauta:     { fuente: "flauta", formantes: [[850, 2.5, 3]], corte: 4500, ataque: 0.05, suelta: 0.05, glide: -12, vib: [5.2, 7, 0.14], ruido: [0.08, 0.04, 2500], satur: 1.2, deriva: 3, brillo: 0.25, gan: 0.17 },
+  clarinete:  { fuente: "clarinete", formantes: [[1500, 3, 4], [3100, 2.5, 2]], corte: 3200, ataque: 0.045, suelta: 0.05, vib: [4.8, 2, 0.03], ruido: [0.04, 0.015, 3000], satur: 2.2, deriva: 2.5, brillo: 0.35, gan: 0.15 },
+  trompeta:   { fuente: "sierra", formantes: [[1200, 4, 5], [2600, 3, 2]], corte: 5500, ataque: 0.015, suelta: 0.04, glide: -40, vib: [5.5, 7, 0.05], ruido: [0.02, 0.005, 3500], satur: 2.6, deriva: 2, brillo: 0.3, gan: 0.13 },
+  violin:     { fuente: "arco", formantes: [[275, 5, 6], [460, 6, 7], [1050, 4, 3], [2800, 4, 6]], corte: 5200, ataque: 0.09, suelta: 0.1, vib: [5.6, 22, 0.07], ruido: [0.1, 0.025, 2800], jitter: 0.09, satur: 1.6, deriva: 4, brillo: 0.3, modal: [180, 5200], gan: 0.14 },
+  viola:      { fuente: "arco", formantes: [[220, 5, 6], [360, 6, 7], [900, 4, 3], [2200, 4, 5]], corte: 4600, ataque: 0.1, suelta: 0.1, vib: [5.3, 18, 0.07], ruido: [0.1, 0.025, 2400], jitter: 0.09, satur: 1.6, deriva: 4, brillo: 0.3, modal: [140, 4600], gan: 0.14 },
+  cello:      { fuente: "arco", formantes: [[100, 5, 6], [195, 6, 7], [500, 4, 3], [1500, 4, 5]], corte: 4000, ataque: 0.11, suelta: 0.12, vib: [5, 15, 0.06], ruido: [0.09, 0.025, 1800], jitter: 0.08, satur: 1.5, deriva: 4, brillo: 0.3, modal: [70, 4000], gan: 0.15 },
+  contrabajo: { fuente: "arco", formantes: [[65, 5, 6], [120, 6, 7], [300, 4, 3], [900, 4, 4]], corte: 3000, ataque: 0.13, suelta: 0.14, vib: [4.5, 10, 0.05], ruido: [0.08, 0.025, 1200], jitter: 0.07, satur: 1.5, deriva: 3, brillo: 0.25, modal: [45, 3000], gan: 0.17 },
+};
+const ondas = {}, cuerpos = {};
+function onda(nombre) {
+  if (ondas[nombre]) return ondas[nombre];
+  const N = 48, real = new Float32Array(N), imag = new Float32Array(N);
+  for (let n = 1; n < N; n++) {
+    let a = 0;
+    if (nombre === "arco") a = Math.abs(Math.sin(Math.PI * n * 0.13)) / n;   // arco a 13 % del puente: faltan algunos armónicos
+    else if (nombre === "sierra") a = 1 / n;
+    else if (nombre === "clarinete") a = (n % 2 ? 1 : 0.22) / n;            // sobre todo armónicos impares
+    else if (nombre === "flauta") a = [0, 1, 0.45, 0.2, 0.08, 0.04, 0.02][n] || 0;
+    imag[n] = a;
+  }
+  ondas[nombre] = ctx.createPeriodicWave(real, imag);
+  return ondas[nombre];
+}
+// azar con semilla: cada instrumento suena siempre igual
+function azar(semilla) { let x = semilla; return () => { x = (x * 16807) % 2147483647; return x / 2147483647; }; }
+// respuesta al impulso de la caja: unas 30 resonancias alrededor de los formantes
+function irCuerpo(tipo) {
+  if (cuerpos[tipo]) return cuerpos[tipo];
+  const p = PERFIL[tipo], sr = ctx.sampleRate, len = Math.floor(sr * 0.3);
+  const buf = ctx.createBuffer(1, len, sr), d = buf.getChannelData(0);
+  const r = azar(tipo.length * 7919 + 13), modos = [];
+  for (const [f, q, g] of p.formantes) modos.push({ f, a: Math.pow(10, g / 20) * 0.6, tau: q / (Math.PI * f) * 1.5 });
+  const [lo, hi] = p.modal;
+  for (let i = 0; i < 30; i++) {
+    const f = lo * Math.pow(hi / lo, (i + 0.8 * r()) / 30);
+    modos.push({ f, a: 0.15 + 0.35 * r(), tau: 0.012 + 0.05 * r() });
+  }
+  for (const m of modos) { m.w = 2 * Math.PI * m.f; m.ph = 2 * Math.PI * r(); }
+  for (let n = 0; n < len; n++) {
+    const t = n / sr;
+    let x = 0;
+    for (const m of modos) x += m.a * Math.exp(-t / m.tau) * Math.sin(m.w * t + m.ph);
+    d[n] = x;
+  }
+  let pico = 0;
+  for (let n = 0; n < len; n++) pico = Math.max(pico, Math.abs(d[n]));
+  for (let n = 0; n < len; n++) d[n] = d[n] / pico * 0.9;
+  d[0] += 1.2;
+  cuerpos[tipo] = buf;
+  return buf;
+}
+// reverb: ruido que decae
+function irSala() {
+  const sr = ctx.sampleRate, len = Math.floor(sr * 1.3), buf = ctx.createBuffer(2, len, sr), r = azar(4242);
+  for (let c = 0; c < 2; c++) {
+    const d = buf.getChannelData(c);
+    let prev = 0;
+    for (let n = 0; n < len; n++) { const t = n / sr; prev = 0.6 * prev + 0.4 * (r() * 2 - 1); d[n] = prev * Math.exp(-t / 0.4) * (t < 0.01 ? t / 0.01 : 1); }
+  }
+  return buf;
+}
+function curvaSaturacion(k) {
+  const n = 1024, c = new Float32Array(n);
+  for (let i = 0; i < n; i++) { const x = (i / (n - 1)) * 2 - 1; c[i] = Math.tanh(k * x) / Math.tanh(k); }
+  return c;
+}
+class Sostenida {
+  constructor(tipo) {
+    this.tipo = tipo; this.p = PERFIL[tipo] || PERFIL.violin;
+    const p = this.p;
+    // fuente, saturación, formantes, corte, caja (solo cuerdas), master
+    this.entrada = ctx.createGain(); this.entrada.gain.value = 1;
+    let ultimo = this.entrada;
+    for (const [f, q, g] of p.formantes) {
+      const bq = ctx.createBiquadFilter(); bq.type = "peaking"; bq.frequency.value = f; bq.Q.value = q; bq.gain.value = g;
+      ultimo.connect(bq); ultimo = bq;
+    }
+    this.corte = ctx.createBiquadFilter(); this.corte.type = "lowpass"; this.corte.frequency.value = p.corte; this.corte.Q.value = 0.5;
+    ultimo.connect(this.corte); ultimo = this.corte;
+    if (p.modal) { this.caja = ctx.createConvolver(); this.caja.buffer = irCuerpo(tipo); ultimo.connect(this.caja); ultimo = this.caja; }
+    this.out = ctx.createGain(); this.out.gain.value = 0;
+    ultimo.connect(this.out).connect(master);
+    this.osc = ctx.createOscillator(); this.osc.setPeriodicWave(onda(p.fuente));
+    this.drive = ctx.createGain(); this.drive.gain.value = 0.3;
+    this.shaper = ctx.createWaveShaper(); this.shaper.curve = curvaSaturacion(p.satur); this.shaper.oversample = "2x";
+    this.osc.connect(this.drive).connect(this.shaper).connect(this.entrada); this.osc.start();
+    // armónicos altos con volumen variable
+    this.alto = ctx.createBiquadFilter(); this.alto.type = "highpass"; this.alto.Q.value = 0.7;
+    this.brillo = ctx.createGain(); this.brillo.gain.value = 0;
+    this.osc.connect(this.alto).connect(this.brillo).connect(this.entrada);
+    const resp = ctx.createBufferSource(); resp.buffer = noiseBuf; resp.loop = true;
+    const respLento = ctx.createBiquadFilter(); respLento.type = "lowpass"; respLento.frequency.value = 1.5;
+    this.respGain = ctx.createGain(); this.respGain.gain.value = 0;
+    resp.connect(respLento).connect(this.respGain).connect(this.brillo.gain); resp.start();
+    // la afinación deriva despacio
+    const der = ctx.createBufferSource(); der.buffer = noiseBuf; der.loop = true;
+    const derLento = ctx.createBiquadFilter(); derLento.type = "lowpass"; derLento.frequency.value = 0.6;
+    this.deriva = ctx.createGain(); this.deriva.gain.value = p.deriva * 25;   // el ruido filtrado es chico
+    der.connect(derLento).connect(this.deriva).connect(this.osc.detune); der.start();
+    // vibrato y trémolo con el mismo LFO
+    this.lfo = ctx.createOscillator(); this.lfo.frequency.value = p.vib[0];
+    this.vib = ctx.createGain(); this.vib.gain.value = 0; this.lfo.connect(this.vib).connect(this.osc.detune);
+    this.trem = ctx.createGain(); this.trem.gain.value = 0; this.lfo.connect(this.trem).connect(this.out.gain);
+    this.lfo.start();
+    // ruido de aliento o de arco
+    this.ruido = ctx.createBufferSource(); this.ruido.buffer = noiseBuf; this.ruido.loop = true;
+    this.rFiltro = ctx.createBiquadFilter(); this.rFiltro.type = "bandpass"; this.rFiltro.Q.value = 6;
+    this.rGain = ctx.createGain(); this.rGain.gain.value = 0;
+    this.ruido.connect(this.rFiltro).connect(this.rGain).connect(this.entrada);
+    this.rAncho = ctx.createBiquadFilter(); this.rAncho.type = "bandpass"; this.rAncho.frequency.value = p.ruido[2]; this.rAncho.Q.value = 0.8;
+    this.rAnchoGain = ctx.createGain(); this.rAnchoGain.gain.value = 0;
+    this.ruido.connect(this.rAncho).connect(this.rAnchoGain).connect(this.entrada);
+    this.ruido.start();
+    // arco: el volumen tiembla un poco
+    if (p.jitter) {
+      this.j = ctx.createBufferSource(); this.j.buffer = noiseBuf; this.j.loop = true;
+      const lento = ctx.createBiquadFilter(); lento.type = "lowpass"; lento.frequency.value = 7;
+      this.jGain = ctx.createGain(); this.jGain.gain.value = 0;
+      this.j.connect(lento).connect(this.jGain).connect(this.out.gain); this.j.start();
+    }
+    this.pitch = -1;
+  }
+  on(pitch, vel, sucio) {
+    const t = ctx.currentTime, v = vel / 100, p = this.p;
+    if (pitch >= 0) {
+      const f = freq(pitch);
+      this.osc.frequency.cancelScheduledValues(t);
+      if (this.pitch < 0 && p.glide) {      // la nota entra desde abajo
+        this.osc.frequency.setValueAtTime(f * Math.pow(2, p.glide / 1200), t);
+        this.osc.frequency.exponentialRampToValueAtTime(f, t + 0.04);
+      } else {
+        this.osc.frequency.setTargetAtTime(f, t, this.pitch < 0 ? 0.003 : 0.02);   // ligado entre notas
+      }
+      this.rFiltro.frequency.setTargetAtTime(f, t, 0.01);
+      this.alto.frequency.setTargetAtTime(Math.min(8000, f * 3.5), t, 0.01);
+      this.pitch = pitch;
+    }
+    const amp = v * p.gan;
+    for (const g of [this.rGain.gain, this.rAnchoGain.gain, this.vib.gain, this.trem.gain, this.drive.gain, this.brillo.gain]) g.cancelScheduledValues(t);
+    this.drive.gain.setTargetAtTime(0.25 + 0.75 * v, t, p.ataque / 2);     // más fuerza, más saturación
+    this.brillo.gain.setTargetAtTime(p.brillo * v, t, 0.05);
+    this.respGain.gain.setTargetAtTime(p.brillo * v * 6, t, 0.05);
+    if (sucio) {
+      this.out.gain.setTargetAtTime(amp * 0.3, t, 0.01);
+      this.rFiltro.Q.setTargetAtTime(2, t, 0.01);
+      this.rGain.gain.setTargetAtTime(v * 0.35, t, 0.01);
+      this.rAnchoGain.gain.setTargetAtTime(v * 0.2, t, 0.01);
+      this.vib.gain.setTargetAtTime(80, t, 0.02);          // sucio
+      this.trem.gain.setTargetAtTime(amp * 0.4, t, 0.02);
+    } else {
+      this.out.gain.setTargetAtTime(amp, t, p.ataque / 3);
+      this.rFiltro.Q.setTargetAtTime(6, t, 0.01);
+      this.rGain.gain.setValueAtTime(v * p.ruido[0], t);   // más ruido en el ataque
+      this.rGain.gain.setTargetAtTime(v * p.ruido[1], t + p.ataque, 0.08);
+      this.rAnchoGain.gain.setValueAtTime(v * p.ruido[0] * 0.5, t);
+      this.rAnchoGain.gain.setTargetAtTime(v * p.ruido[1] * 0.4, t + p.ataque, 0.08);
+      this.vib.gain.setValueAtTime(0, t);
+      this.vib.gain.setTargetAtTime(p.vib[1], t + 0.3, 0.25);
+      this.trem.gain.setValueAtTime(0, t);
+      this.trem.gain.setTargetAtTime(amp * p.vib[2], t + 0.3, 0.25);
+      if (this.jGain) this.jGain.gain.setTargetAtTime(amp * p.jitter, t, 0.05);
+      this.corte.frequency.setTargetAtTime(p.corte * (0.45 + 0.55 * v), t, p.ataque / 2);   // más fuerte, más brillo
+    }
+  }
+  off() {
+    const t = ctx.currentTime, p = this.p;
+    for (const g of [this.out.gain, this.rGain.gain, this.rAnchoGain.gain, this.vib.gain, this.trem.gain]) { g.cancelScheduledValues(t); g.setTargetAtTime(0, t, p.suelta); }
+    if (this.jGain) this.jGain.gain.setTargetAtTime(0, t, 0.05);
+    this.pitch = -1;
+  }
+}
+
+// guitarra (Karplus-Strong) y piano (parciales): se precalculan en buffers
+function bufferPulsada(pitch, vel) {
+  // ruido suavizado y filtrado por la posición de la púa; un polo extra en el lazo apaga antes los agudos
+  const sr = ctx.sampleRate, f = freq(pitch), N = Math.max(4, Math.round(sr / f - 0.5)), len = Math.floor(sr * 2.5);
+  const buf = ctx.createBuffer(1, len, sr), d = buf.getChannelData(0);
+  const anillo = new Float32Array(N);
+  const suave = 0.35 + 0.4 * (1 - vel / 100);          // toque flojo: excitación más oscura
+  let prev = 0;
+  for (let i = 0; i < N; i++) { const x = Math.random() * 2 - 1; prev = suave * prev + (1 - suave) * x; anillo[i] = prev; }
+  const pua = Math.max(1, Math.round(N * 0.13));          // posición de la púa sobre la cuerda
+  const copia = Float32Array.from(anillo);
+  for (let i = 0; i < N; i++) anillo[i] = copia[i] - copia[(i + N - pua) % N];
+  const rho = 0.55 + 0.3 * Math.min(1, pitch / 80);       // graves más oscuros que agudos
+  const decaimiento = 0.995 + 0.004 * Math.min(1, pitch / 90);
+  let idx = 0, y1 = 0;
+  for (let n = 0; n < len; n++) {
+    const sig = (idx + 1) % N;
+    let y = 0.5 * (anillo[idx] + anillo[sig]);
+    y = rho * y + (1 - rho) * y1; y1 = y;
+    y *= decaimiento;
+    anillo[idx] = y; d[n] = y; idx = sig;
+  }
+  const fade = Math.floor(sr * 0.002);
+  for (let n = 0; n < fade; n++) d[n] *= n / fade;
+  let pico = 0;
+  for (let n = 0; n < len; n++) pico = Math.max(pico, Math.abs(d[n]));
+  if (pico > 0) for (let n = 0; n < len; n++) d[n] *= 0.8 / pico;
+  return buf;
+}
+function bufferPiano(pitch) {
+  const sr = ctx.sampleRate, dur = 3.2, len = Math.floor(sr * dur);
+  const buf = ctx.createBuffer(1, len, sr), d = buf.getChannelData(0);
+  const f0 = freq(pitch), B = 0.0004, grave = Math.max(0.3, Math.min(1.6, 300 / f0));
+  const parciales = [];
+  for (let k = 1; k <= 8; k++) {
+    const fk = f0 * k * Math.sqrt(1 + B * k * k);
+    if (fk > sr / 2) break;
+    parciales.push({ w: 2 * Math.PI * fk, a: Math.pow(k, -1.4), tau: 0.9 * grave / Math.sqrt(k) });
+  }
+  for (let n = 0; n < len; n++) {
+    const t = n / sr;
+    let s = 0;
+    for (const p of parciales) s += p.a * Math.exp(-t / p.tau) * Math.sin(p.w * t);
+    if (t < 0.006) s += (Math.random() * 2 - 1) * 0.35 * (1 - t / 0.006);   // golpe del martillo
+    d[n] = s * 0.6;
+  }
+  return buf;
+}
+class Golpeada {
+  constructor(tipo) {
+    this.tipo = tipo; this.src = null; this.g = null;
+    // caja: pasabajos y un refuerzo en graves
+    this.cuerpo = ctx.createBiquadFilter(); this.cuerpo.type = "peaking";
+    this.cuerpo.frequency.value = tipo === "piano" ? 220 : 160; this.cuerpo.Q.value = 1.2; this.cuerpo.gain.value = 3;
+    this.corte = ctx.createBiquadFilter(); this.corte.type = "lowpass";
+    this.corte.frequency.value = tipo === "piano" ? 5000 : 3200; this.corte.Q.value = 0.7;
+    this.cuerpo.connect(this.corte).connect(master);
+  }
+  on(pitch, vel, sucio) {
+    const t = ctx.currentTime;
+    if (this.g) { this.g.gain.setTargetAtTime(0, t, 0.03); const old = this.src; setTimeout(() => { try { old.stop(); } catch (e) {} }, 400); }
+    if (pitch < 0) { this.ruidoCorto(vel); return; }
+    const toque = vel < 45 ? "p" : vel < 80 ? "m" : "f";
+    const key = this.tipo + ":" + pitch + ":" + toque;
+    if (!bufCache[key]) bufCache[key] = this.tipo === "piano" ? bufferPiano(pitch) : bufferPulsada(pitch, vel);
+    this.src = ctx.createBufferSource(); this.src.buffer = bufCache[key];
+    this.g = ctx.createGain(); this.g.gain.value = vel / 100 * (this.tipo === "piano" ? 0.5 : 0.4);
+    this.src.connect(this.g).connect(this.cuerpo); this.src.start();
+    if (sucio) { this.src.playbackRate.value = 1.04; this.ruidoCorto(vel); }
+  }
+  ruidoCorto(vel) {
+    const t = ctx.currentTime, n = ctx.createBufferSource(); n.buffer = noiseBuf;
+    const g = ctx.createGain(); g.gain.setValueAtTime(vel / 100 * 0.3, t); g.gain.exponentialRampToValueAtTime(0.001, t + 0.25);
+    n.connect(g).connect(master); n.start(); n.stop(t + 0.3);
+  }
+  off() { if (this.g) this.g.gain.setTargetAtTime(0, ctx.currentTime, this.tipo === "piano" ? 0.12 : 0.08); }
+}
+function vozDe(m, k) {
+  if (!ctx) return null;
+  if (!m.voces[k]) m.voces[k] = (m.familia === "teclado" || m.tipo === "guitarra") ? new Golpeada(m.tipo) : new Sostenida(m.tipo);
+  return m.voces[k];
+}
+
+
+// lo que suena
+function suena(nombre, pitch, vel, sucio, beat, k) {
+  const m = musicos[nombre];
+  if (!m) return;
+  const prev = m.prev[k] || { pitch: -1, on: false, sucio: false };
+  const on = vel > 0 && (pitch >= 0 || sucio);
+  if (on && sucio && !prev.sucio) { m.sucios++; m.sucioHasta = performance.now() + 250; m.tocadas.push({ beat, pitch, clase: "sucia" }); }
+  if (on && !sucio && (!prev.on || prev.sucio || pitch !== prev.pitch)) { m.ataques++; m.tocadas.push({ beat, pitch, clase: clasificar(m, beat, pitch) }); }
+  m.prev[k] = { pitch, on, sucio: on && sucio };
+  if (on) m.activas[k] = { pitch, sucio }; else delete m.activas[k];
+  const v = vozDe(m, k);
+  if (v) { if (on) v.on(pitch, vel, sucio); else v.off(); }
+  render(m);
+}
+function clasificar(m, beat, pitch) {
+  let mejor = null;
+  for (const [b, d, p] of m.parte) if (p === pitch) { const dt = Math.abs(b - beat); if (dt <= 1 && (mejor === null || dt < mejor)) mejor = dt; }
+  return mejor === null ? "extraña" : mejor <= 0.2 ? "ok" : "tarde";
+}
+
+// dibujos
+const COLOR = { izq: IZQ, der: DER };
+function parseEstado(f) {
+  // familia energia cuerda torpezas izq=... der=... extra
+  const e = { familia: f[1], energia: +f[2], cuerda: f[3], torpezas: +f[4], manos: {}, extra: {} };
+  for (const tok of f.slice(5)) {
+    const [k, v] = [tok.slice(0, tok.indexOf("=")), tok.slice(tok.indexOf("=") + 1)];
+    if (k === "izq" || k === "der") {
+      e.manos[k] = v.split(",").map(s => { const [d, lugar] = s.split("="); return { d: +d, moviendo: lugar.startsWith("~"), lugar: lugar.replace("~", "") }; });
+    } else if (tok !== "-") {
+      for (const kv of tok.split(";")) { const i = kv.indexOf("="); e.extra[kv.slice(0, i)] = kv.slice(i + 1); }
+    }
+  }
+  return e;
+}
+function render(m) {
+  const div = document.getElementById("p-" + m.nombre);
+  if (!div) return;
+  const e = m.estado;
+  const sucioAhora = Object.values(m.activas).some(a => a.sucio) || performance.now() < m.sucioHasta;
+  m.pintadoSucio = sucioAhora;
+  const act = Object.entries(m.activas);
+  const nota = div.querySelector(".nota");
+  nota.textContent = m.familia !== "teclado" ? "" : act.length ? act.map(([k, a]) => (a.sucio ? "sucio" : nombreNota(a.pitch)) + (k !== "-" ? " en " + k : "")).join(", ") : "silencio";
+  nota.classList.toggle("sucia", sucioAhora);
+  const cnt = c => m.tocadas.filter(t => t.clase === c).length;
+  const cs = div.querySelectorAll(".cuentas b");
+  cs[0].textContent = cnt("ok"); cs[1].textContent = cnt("tarde"); cs[2].textContent = cnt("extraña"); cs[3].textContent = cnt("sucia");
+  cs[4].textContent = e ? e.torpezas : 0;
+  const dib = div.querySelector(".dibujo");
+  if (!e) {
+    const caja = m.familia === "viento" ? [560, 150] : m.familia === "cuerda" ? [300, 250] : [1000, 120];
+    dib.innerHTML = `<svg viewBox="0 0 ${caja[0]} ${caja[1]}"><text x="${caja[0] / 2}" y="${caja[1] / 2 + 5}" fill="${DIM}" text-anchor="middle" font-size="14" font-style="italic" font-family='${SERIF}'>esperando al instrumento</text></svg>`;
+    return;
+  }
+  if (e.familia === "viento") dib.innerHTML = svgViento(m, e);
+  else if (e.familia === "cuerda") dib.innerHTML = svgCuerda(m, e);
+  else dib.innerHTML = svgTeclado(m, e);
+}
+const NOMBRES = ["do", "do♯", "re", "re♯", "mi", "fa", "fa♯", "sol", "sol♯", "la", "la♯", "si"];
+function nombreNota(p) { return p < 0 ? "?" : NOMBRES[p % 12] + (Math.floor(p / 12) - 1); }
+const ES_SOSTENIDO = p => [1, 3, 6, 8, 10].includes(p % 12);
+// dedo: lleno abajo, hueco arriba, punteado en viaje
+function disco(x, y, r, mano, d, abajo, sucio) {
+  const c = sucio ? MAL : COLOR[mano];
+  if (d.moviendo) return `<circle cx="${x}" cy="${y}" r="${r}" fill="none" stroke="${c}" stroke-width="1.5" stroke-dasharray="3 2"/>`;
+  return abajo ? `<circle cx="${x}" cy="${y}" r="${r}" fill="${c}"/>` : `<circle cx="${x}" cy="${y}" r="${r}" fill="none" stroke="${c}" stroke-width="1.1"/>`;
+}
+const T = (x, y, s, o = {}) => `<text x="${x}" y="${y}" font-family='${SERIF}' font-size="${o.fs || 12}" fill="${o.c || INK}"${o.i ? ' font-style="italic"' : ""}${o.a ? ` text-anchor="${o.a}"` : ""}>${s}</text>`;
+
+// fuelle: se abre con el aire
+function fuelle(x, y, aire) {
+  const w = 26 + 66 * aire, xr = x + w, n = 10, paso = w / n;
+  let arriba = `M${x} ${y}`, abajo = `M${x} ${y + 40}`;
+  for (let i = 1; i <= n; i++) { const xi = x + i * paso, z = i % 2 ? 6 : 0; arriba += ` L${xi.toFixed(1)} ${y + z}`; abajo += ` L${xi.toFixed(1)} ${y + 40 - z}`; }
+  let s = `<line x1="${x}" y1="${y}" x2="${x}" y2="${y + 40}" stroke="${INK}" stroke-width="2"/><line x1="${xr}" y1="${y}" x2="${xr}" y2="${y + 40}" stroke="${INK}" stroke-width="2"/>`;
+  s += `<path d="${arriba}" fill="none" stroke="${INK}" stroke-width="1"/><path d="${abajo}" fill="none" stroke="${INK}" stroke-width="1"/>`;
+  if (aire > 0) s += `<line x1="${xr}" y1="${y + 20}" x2="${xr + 20}" y2="${y + 20}" stroke="${INK}"/><path d="M${xr + 16} ${y + 16} L${xr + 22} ${y + 20} L${xr + 16} ${y + 24}" fill="none" stroke="${INK}"/>`;
+  return s;
+}
+function svgViento(m, e) {
+  const sucio = Object.values(m.activas).some(a => a.sucio);
+  const aire = Math.min(1, e.energia / 100);
+  const izq = e.manos.izq || [], der = e.manos.der || [];
+  const XI = [200, 240, 280], XD = [340, 380, 420, 460];
+  let s = `<svg viewBox="0 0 560 150">`;
+  if (m.tipo === "flauta") {
+    s += `<line x1="170" y1="46" x2="482" y2="46" stroke="${INK}"/><rect x="167" y="42" width="4" height="16" fill="${INK}"/><rect x="479" y="42" width="4" height="16" fill="${INK}"/>`;
+    s += `<rect x="40" y="58" width="500" height="24" rx="4" fill="none" stroke="${INK}" stroke-width="1.3"/><rect x="33" y="60" width="8" height="20" rx="2" fill="none" stroke="${INK}" stroke-width="1.1"/>`;
+    s += `<line x1="150" y1="58" x2="150" y2="82" stroke="${INK}"/><line x1="400" y1="58" x2="400" y2="82" stroke="${INK}"/><line x1="44" y1="78" x2="536" y2="78" stroke="${INK}" stroke-width=".5"/><line x1="44" y1="75" x2="536" y2="75" stroke="${INK}" stroke-width=".3"/>`;
+    s += `<rect x="74" y="62" width="34" height="16" rx="8" fill="none" stroke="${INK}" stroke-width="1.1"/><ellipse cx="91" cy="70" rx="7" ry="4.5" fill="${INK}"/>`;
+    const llave = (x, mano, d) => `<line x1="${x}" y1="59" x2="${x}" y2="46" stroke="${INK}"/><circle cx="${x}" cy="70" r="10" fill="none" stroke="${INK}" stroke-width="1.3"/>` + disco(x, 70, 6, mano, d, d.lugar === "abajo", sucio);
+    izq.forEach((d, i) => { if (XI[i] !== undefined) s += llave(XI[i], "izq", d); });
+    der.forEach((d, i) => { if (XD[i] !== undefined) s += llave(XD[i], "der", d); });
+  } else if (m.tipo === "clarinete") {
+    s += `<polygon points="40,62 74,57 74,83 40,78" fill="${INK}"/><line x1="46" y1="79" x2="72" y2="82" stroke="${PAPEL_()}" stroke-width=".8"/>`;
+    s += `<rect x="74" y="58" width="396" height="24" rx="1" fill="none" stroke="${INK}" stroke-width="1.3"/><path d="M470 58 L540 42 L540 98 L470 82 Z" fill="none" stroke="${INK}" stroke-width="1.3"/>`;
+    s += `<line x1="104" y1="58" x2="104" y2="82" stroke="${INK}"/><line x1="312" y1="58" x2="312" y2="82" stroke="${INK}"/><line x1="78" y1="78" x2="466" y2="78" stroke="${INK}" stroke-width=".5"/>`;
+    s += `<line x1="140" y1="58" x2="140" y2="50" stroke="${INK}"/><rect x="134" y="46" width="12" height="4" fill="${INK}"/><line x1="500" y1="52" x2="500" y2="44" stroke="${INK}"/><rect x="494" y="40" width="12" height="4" fill="${INK}"/>`;
+    const agujero = (x, mano, d) => `<circle cx="${x}" cy="70" r="8" fill="none" stroke="${INK}" stroke-width="1.2"/>` + disco(x, 70, 5, mano, d, d.lugar === "abajo", sucio);
+    izq.forEach((d, i) => { if (XI[i] !== undefined) s += agujero(XI[i], "izq", d); });
+    der.forEach((d, i) => { if (XD[i] !== undefined) s += agujero(XD[i], "der", d); });
+  } else {   // trompeta: pistones (izq) y llaves (der)
+    const XP = [200, 240, 280], XL = [330, 362, 394, 426];
+    // boquilla y tudel
+    s += `<path d="M34 64 L46 66 L46 74 L34 76 Z" fill="${INK}"/><rect x="46" y="67" width="10" height="6" fill="${INK}"/><rect x="56" y="65" width="384" height="10" rx="2" fill="none" stroke="${INK}" stroke-width="1.2"/>`;
+    s += `<line x1="60" y1="72" x2="436" y2="72" stroke="${INK}" stroke-width=".4"/><rect x="110" y="63" width="4" height="14" fill="${INK}"/><rect x="460" y="60" width="3" height="20" fill="${INK}"/>`;
+    // tubo y bomba
+    s += `<path d="M170 75 Q170 112 220 112 L410 112 Q446 112 446 84" fill="none" stroke="${INK}" stroke-width="1.6"/>`;
+    // bomba, llave de agua, tirante y gancho
+    s += `<path d="M176 86 Q176 106 206 106" fill="none" stroke="${INK}" stroke-width=".6"/><rect x="214" y="100" width="4" height="16" fill="${INK}"/><rect x="167" y="86" width="12" height="3" fill="${INK}"/>`;
+    s += `<circle cx="186" cy="104" r="2.6" fill="${INK}"/><line x1="188" y1="102" x2="200" y2="94" stroke="${INK}"/><line x1="310" y1="75" x2="310" y2="112" stroke="${INK}"/>`;
+    s += `<path d="M300 75 Q300 86 310 86 Q320 86 320 78" fill="none" stroke="${INK}" stroke-width="1"/>`;
+    // campana
+    s += `<path d="M440 62 Q500 60 540 34 L540 106 Q500 80 440 78 Z" fill="none" stroke="${INK}" stroke-width="1.3"/><path d="M536 38 L536 102" stroke="${INK}" stroke-width=".6"/><line x1="440" y1="62" x2="440" y2="78" stroke="${INK}"/>`;
+    // pistones
+    izq.forEach((d, i) => {
+      const x = XP[i]; if (x === undefined) return;
+      const abajo = d.lugar === "abajo", yc = abajo ? 54 : 40;
+      s += `<rect x="${x - 7}" y="52" width="14" height="42" fill="none" stroke="${INK}" stroke-width="1.2"/><rect x="${x - 9}" y="50" width="18" height="3" fill="${INK}"/><rect x="${x - 9}" y="93" width="18" height="3" fill="${INK}"/><line x1="${x - 7}" y1="65" x2="${x + 7}" y2="65" stroke="${INK}" stroke-width=".5"/><line x1="${x - 7}" y1="75" x2="${x + 7}" y2="75" stroke="${INK}" stroke-width=".5"/>`;
+      s += `<line x1="${x}" y1="${yc}" x2="${x}" y2="50" stroke="${INK}" stroke-width="1.6"/>` + disco(x, yc, 6, "izq", d, abajo, sucio);
+    });
+    // llaves
+    der.forEach((d, i) => { const x = XL[i]; if (x === undefined) return; s += `<line x1="${x}" y1="112" x2="${x}" y2="104" stroke="${INK}"/><circle cx="${x}" cy="112" r="7" fill="none" stroke="${INK}" stroke-width="1.2"/>` + disco(x, 112, 4.5, "der", d, d.lugar === "abajo", sucio); });
+    for (let i = 0; i < 3; i++) s += T(XP[i], 30, i + 1, { c: IZQ, a: "middle" });
+    for (let i = 0; i < 4; i++) s += T(XL[i], 135, i + 1, { c: DER, a: "middle" });
+    s += T(240, 17, "mano izquierda, pistones", { c: IZQ, a: "middle", i: 1 }) + T(378, 149, "mano derecha, llaves", { c: DER, a: "middle", i: 1 });
+  }
+  if (m.tipo !== "trompeta") {
+    for (let i = 0; i < 3; i++) s += T(XI[i], 100, i + 1, { c: IZQ, a: "middle" });
+    for (let i = 0; i < 4; i++) s += T(XD[i], 100, i + 1, { c: DER, a: "middle" });
+    s += `<path d="M190 106 L190 110 L290 110 L290 106" fill="none" stroke="${IZQ}" stroke-width=".8"/>` + T(240, 124, "mano izquierda", { c: IZQ, a: "middle", i: 1 });
+    s += `<path d="M330 106 L330 110 L470 110 L470 106" fill="none" stroke="${DER}" stroke-width=".8"/>` + T(400, 124, "mano derecha", { c: DER, a: "middle", i: 1 });
+  }
+  s += fuelle(40, 100, aire) + T(40, 94, `fuelle, aire ${e.energia}`, { c: DIM, i: 1 });
+  const act = Object.values(m.activas);
+  const nota = act.length ? (act[0].sucio ? "sucio" : nombreNota(act[0].pitch)) : "";
+  s += T(540, 134, nota, { fs: 30, i: 1, a: "end", c: sucio ? MAL : INK });
+  return s + `</svg>`;
+}
+function PAPEL_() { return "#ece3cf"; }
+function svgCuerda(m, e) {
+  const sucio = Object.values(m.activas).some(a => a.sucio);
+  const cuerdas = (e.extra.cuerdas || "G:55,D:62,A:69,E:76").split(",").map(s => s.split(":")[0]);
+  const n = cuerdas.length, yNut = 34, yFin = 200, dy = 22;
+  const tw = n <= 4 ? 60 : 108, bw = n <= 4 ? 84 : 150, rDedo = n <= 4 ? 9 : 6.5;
+  const xTop = i => 150 - tw / 2 + (i + 1) * tw / (n + 1), xBot = i => 150 - bw / 2 + (i + 1) * bw / (n + 1);
+  const xAt = (i, y) => xTop(i) + (xBot(i) - xTop(i)) * (y - yNut) / (yFin - yNut);
+  const sonando = e.energia > 0 ? e.cuerda.split(",") : [];
+  let s = `<svg viewBox="0 0 300 250">`;
+  s += `<polygon points="${150 - tw / 2},${yNut} ${150 + tw / 2},${yNut} ${150 + bw / 2},${yFin} ${150 - bw / 2},${yFin}" fill="none" stroke="${INK}" stroke-width="1.3"/><line x1="${150 - tw / 2}" y1="38" x2="${150 + tw / 2}" y2="38" stroke="${INK}" stroke-width="3"/>`;
+  for (let p = 1; p <= 6; p++) { const y = yNut + 4 + p * dy; const med = (tw + (bw - tw) * (y - yNut) / (yFin - yNut)) / 2; s += `<line x1="${150 - med}" y1="${y}" x2="${150 + med}" y2="${y}" stroke="#8a7f6e" stroke-width=".7" stroke-dasharray="2 3"/>` + T(146 - bw / 2, y + 4, p, { fs: 11, i: 1, a: "end", c: DIM }); }
+  cuerdas.forEach((c, i) => {
+    const frotada = sonando.includes(c);
+    s += `<line x1="${xTop(i)}" y1="${yNut}" x2="${xBot(i)}" y2="${yFin}" stroke="${INK}" stroke-width="${Math.max(.6, 1.5 - i * .22) + (frotada ? 1.2 : 0)}"/>`;
+    s += T(xTop(i), 24, c, { fs: n <= 4 ? 13 : 12, i: 1, a: "middle", c: frotada ? INK : DIM });
+  });
+  for (const d of (e.manos.izq || [])) {
+    if (d.lugar === "arriba" || !d.lugar.includes(":")) continue;
+    const [c, pos] = d.lugar.split(":");
+    const i = cuerdas.indexOf(c);
+    if (i < 0) continue;
+    const y = yNut + 4 + (+pos) * dy - (pos > 0 ? dy / 2 : 0), x = xAt(i, y);
+    s += disco(x, y, rDedo, "izq", d, true, false);
+    if (!d.moviendo) s += T(x, y + (n <= 4 ? 4 : 3), d.d, { fs: n <= 4 ? 11 : 9, a: "middle", c: PAPEL_() });
+  }
+  const fuerza = Math.min(1, e.energia / 100);
+  const idx = sonando.map(c => cuerdas.indexOf(c)).filter(i => i >= 0);
+  const marca = sucio ? MAL : DER;
+  if (m.tipo === "guitarra") {
+    for (const i of idx) { const x = xAt(i, 212); s += `<polygon points="${x - 6},206 ${x + 6},206 ${x},222" fill="${marca}"/>`; }
+    s += `<path d="M268 206 Q278 198 288 206 Q290 216 278 230 Q266 216 268 206 Z" fill="none" stroke="${INK}" stroke-width="1.2" opacity="${0.3 + 0.7 * fuerza}"/>`;
+    s += T(292, 244, `púa ${e.energia}`, { i: 1, a: "end", c: DIM });
+  } else {
+    const o = 0.25 + 0.75 * fuerza;
+    s += `<g opacity="${o}"><path d="M30 213 Q150 203 290 212" fill="none" stroke="${INK}" stroke-width="1.6"/><line x1="48" y1="219" x2="284" y2="219" stroke="${INK}" stroke-width=".8"/><rect x="34" y="211" width="20" height="13" fill="${INK}"/><path d="M284 212 L292 206 L290 219 Z" fill="${INK}"/></g>`;
+    if (idx.length) { const a = Math.min(...idx), b = Math.max(...idx); s += `<line x1="${xAt(a, 219) - 9}" y1="219" x2="${xAt(b, 219) + 9}" y2="219" stroke="${marca}" stroke-width="5"/>`; }
+    s += T(292, 244, `arco ${e.energia}`, { i: 1, a: "end", c: DIM });
+  }
+  // la nota que suena; en un acorde, una línea por cuerda
+  const act = Object.entries(m.activas).sort(([a], [b]) => cuerdas.indexOf(a) - cuerdas.indexOf(b));
+  const etiqueta = a => a.sucio ? "sucio" : nombreNota(a.pitch);
+  if (act.length === 1) s += T(296, 84, etiqueta(act[0][1]), { fs: 26, i: 1, a: "end", c: act[0][1].sucio ? MAL : INK });
+  else act.forEach(([k, a], j) => { s += T(296, 62 + j * 18, `${etiqueta(a)} en ${k}`, { fs: 14, i: 1, a: "end", c: a.sucio ? MAL : INK }); });
+  return s + `</svg>`;
+}
+function svgTeclado(m, e) {
+  const [lo, hi] = (e.extra.rango || "36-96").split("-").map(Number);
+  const ancho = +(e.extra.ancho || 12);
+  const negras = new Set([1, 3, 6, 8, 10]);
+  const blancas = [];
+  for (let p = lo; p <= hi; p++) if (!negras.has(p % 12)) blancas.push(p);
+  const W = 1000, kw = W / blancas.length;
+  const xDe = p => { let i = 0; for (let q = lo; q < p; q++) if (!negras.has(q % 12)) i++; return negras.has(p % 12) ? i * kw - kw * 0.3 : i * kw; };
+  const dedosEn = {};
+  const apretadas = { izq: [], der: [] };
+  for (const mano of ["izq", "der"]) for (const d of (e.manos[mano] || [])) {
+    if (d.lugar === "arriba" || !d.lugar.includes(":")) continue;
+    const tecla = +d.lugar.split(":")[0];
+    dedosEn[tecla] = { mano, d };
+    if (!d.moviendo) apretadas[mano].push(tecla);
+  }
+  const noDa = { izq: apretadas.izq.length > 1 && Math.max(...apretadas.izq) - Math.min(...apretadas.izq) > ancho,
+                 der: apretadas.der.length > 1 && Math.max(...apretadas.der) - Math.min(...apretadas.der) > ancho };
+  const relleno = (f, base) => f ? (f.d.moviendo ? base : noDa[f.mano] ? MAL : COLOR[f.mano]) : base;
+  const borde = f => f && f.d.moviendo ? ` stroke="${COLOR[f.mano]}" stroke-width="2" stroke-dasharray="4 3"` : ` stroke="${INK}" stroke-width=".9"`;
+  let s = `<svg viewBox="0 0 ${W} 120">`;
+  for (const p of blancas) {
+    const f = dedosEn[p];
+    s += `<rect x="${xDe(p)}" y="4" width="${kw - 1.2}" height="90" fill="${relleno(f, "#f4eee0")}"${borde(f)}/>`;
+    if (f && !f.d.moviendo) s += T(xDe(p) + kw / 2, 86, f.d.d, { a: "middle", c: "#f4eee0" });
+  }
+  for (let p = lo; p <= hi; p++) if (negras.has(p % 12)) {
+    const f = dedosEn[p];
+    s += `<rect x="${xDe(p)}" y="4" width="${kw * 0.6}" height="56" fill="${relleno(f, INK)}"${borde(f)}/>`;
+    if (f && !f.d.moviendo) s += T(xDe(p) + kw * 0.3, 52, f.d.d, { fs: 11, a: "middle", c: "#f4eee0" });
+  }
+  s += e.energia > 0 ? `<rect x="10" y="104" width="40" height="10" fill="${DER}"/>` : `<rect x="10.5" y="104.5" width="39" height="9" fill="none" stroke="${INK}"/>`;
+  s += T(58, 113, e.energia > 0 ? "pedal abajo" : "pedal arriba", { i: 1, c: DIM });
+  if (noDa.izq || noDa.der) s += T(W - 10, 113, `la mano ${noDa.izq ? "izquierda" : "derecha"} no da`, { i: 1, a: "end", c: MAL, fs: 13 });
+  return s + `</svg>`;
+}
+
+// partitura
+const roll = document.getElementById("roll"), rctx = roll.getContext("2d");
+const PASO = p => Math.floor(p / 12) * 7 + [0, 0, 1, 1, 2, 3, 3, 4, 4, 5, 5, 6][p % 12];   // posición diatónica
+const ESP = 6;   // separación entre líneas del pentagrama
+function pentagramaDe(m) {
+  if (m.familia === "teclado") return "gran";
+  const ps = m.parte.map(n => n[2]).sort((a, b) => a - b);
+  if (!ps.length) return ["cello", "contrabajo"].includes(m.tipo) ? "fa" : "sol";
+  return ps[ps.length >> 1] < 60 ? "fa" : "sol";
+}
+// alto de cada carril: el pentagrama más las líneas adicionales que use la parte
+function carriles() {
+  return Object.values(musicos).map(m => {
+    const tipo = pentagramaDe(m), ps = m.parte.map(n => n[2]);
+    const def = tipo === "gran" ? [{ primero: 37, de: ps.filter(p => p >= 60) }, { primero: 18, de: ps.filter(p => p < 60) }] : [{ primero: tipo === "fa" ? 18 : 37, de: ps }];
+    const pautas = def.map(q => { const ss = q.de.map(PASO); return { primero: q.primero, hi: Math.max(q.primero + 8, ...ss), lo: Math.min(q.primero, ...ss) }; });
+    let y = 12;
+    for (const q of pautas) { q.yb = y + (q.hi - q.primero) * ESP / 2; y = q.yb + (q.primero - q.lo) * ESP / 2 + 10; }
+    return { m, pautas, h: Math.max(56, y + 2) };
+  });
+}
+function ajustarRollo() {
+  const cs = carriles(), H = 20 + Math.max(60, cs.reduce((a, c) => a + c.h, 0)) + 4, dpr = window.devicePixelRatio || 1;
+  const w = roll.clientWidth || 1400;
+  roll.width = Math.round(w * dpr); roll.height = Math.round(H * dpr); roll.style.height = H + "px";
+  rctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+}
+window.addEventListener("resize", ajustarRollo);
+function cabeza(x, y, fill) {
+  rctx.save(); rctx.translate(x, y); rctx.rotate(-20 * Math.PI / 180); rctx.beginPath(); rctx.ellipse(0, 0, 4.3, 3, 0, 0, Math.PI * 2);
+  if (fill) { rctx.fillStyle = fill; rctx.fill(); } else { rctx.strokeStyle = INK; rctx.lineWidth = 1.1; rctx.stroke(); }
+  rctx.restore();
+}
+function drawRoll() {
+  const W = roll.clientWidth || 1400, H = +roll.style.height.replace("px", "") || 120, now = beatNow(), antes = 8, despues = 4, top = 20, margen = 96;
+  const xDe = b => margen + (b - (now - antes)) / (antes + despues) * (W - margen);
+  rctx.clearRect(0, 0, W, H);
+  rctx.font = `italic 11px ${SERIF}`; rctx.textAlign = "left"; rctx.textBaseline = "alphabetic";
+  for (let b = Math.ceil(now - antes); b <= now + despues; b++) {
+    const x = xDe(b), compas = b % 4 === 0;
+    rctx.strokeStyle = compas ? "#b3a78c" : "#e4dcc8"; rctx.lineWidth = compas ? 1 : .6;
+    rctx.beginPath(); rctx.moveTo(x, compas ? 14 : top); rctx.lineTo(x, H); rctx.stroke();
+    if (compas) { rctx.fillStyle = DIM; rctx.fillText(String(b), x + 4, 11); }
+  }
+  let y0 = top;
+  rctx.save(); rctx.beginPath(); rctx.rect(margen - 12, 0, W - margen + 12, H); rctx.clip();   // las notas no pasan por encima de los nombres
+  for (const { m, h, pautas: pautasRel } of carriles()) {
+    const pautas = pautasRel.map(q => ({ ...q, yb: y0 + q.yb }));
+    rctx.strokeStyle = "#a89c82"; rctx.lineWidth = .7;
+    for (const p of pautas) for (let k = 0; k < 5; k++) { const y = p.yb - k * ESP; rctx.beginPath(); rctx.moveTo(margen, y); rctx.lineTo(W, y); rctx.stroke(); }
+    const pauta = p => (pautas.length > 1 && p < 60) ? pautas[1] : pautas[0];
+    const yDe = p => { const q = pauta(p); return q.yb - (PASO(p) - q.primero) * ESP / 2; };
+    const ledger = (x, p) => { const q = pauta(p), s = PASO(p) - q.primero; if ((s < 0 || s > 8) && s % 2 === 0) { rctx.strokeStyle = INK; rctx.lineWidth = .8; rctx.beginPath(); rctx.moveTo(x - 7, yDe(p)); rctx.lineTo(x + 7, yDe(p)); rctx.stroke(); } };
+    const sostenido = (x, p) => { if (ES_SOSTENIDO(p)) { rctx.fillStyle = INK; rctx.font = `9px ${SERIF}`; rctx.textAlign = "right"; rctx.fillText("♯", x - 5, yDe(p) + 3); } };
+    for (const [b, d, p] of m.parte) if (b + d > now - antes && b < now + despues) {
+      const x = xDe(b), y = yDe(p);
+      rctx.strokeStyle = "#7a6d58"; rctx.lineWidth = 1.8; rctx.lineCap = "round"; rctx.beginPath(); rctx.moveTo(x + 6, y); rctx.lineTo(Math.max(x + 7, xDe(b + d) - 3), y); rctx.stroke();
+      ledger(x, p); sostenido(x, p); cabeza(x, y, null);
+    }
+    for (const t of m.tocadas) if (t.beat > now - antes - 1 && t.beat < now + despues) {
+      const x = xDe(t.beat), c = t.clase === "ok" ? OK : t.clase === "tarde" ? TARDE : t.clase === "sucia" ? MAL : EXTRA;
+      if (t.pitch < 0 || t.clase === "sucia") { rctx.fillStyle = MAL; rctx.font = `15px ${SERIF}`; rctx.textAlign = "center"; rctx.fillText("×", x, y0 + h - 4); }
+      else { ledger(x, t.pitch); cabeza(x, yDe(t.pitch), c); }
+    }
+    y0 += h;
+  }
+  rctx.restore();
+  y0 = top;
+  for (const { m, h } of carriles()) {
+    rctx.textAlign = "left"; rctx.fillStyle = INK; rctx.font = `14px ${SERIF}`; rctx.fillText(m.nombre, 10, y0 + 20);
+    rctx.fillStyle = DIM; rctx.font = `italic 11px ${SERIF}`; rctx.fillText(m.tipo, 10, y0 + 35);
+    y0 += h;
+  }
+  rctx.strokeStyle = INK; rctx.lineWidth = 1.3; rctx.beginPath(); rctx.moveTo(xDe(now), 6); rctx.lineTo(xDe(now), H); rctx.stroke();
+}
+// un sucio se pinta 250 ms; si no llega otro evento de ese músico, se despinta acá
+function despintarSucios() {
+  for (const m of Object.values(musicos))
+    if (m.pintadoSucio && performance.now() >= m.sucioHasta && !Object.values(m.activas).some(a => a.sucio)) render(m);
+}
+function animar() { tickUI(); despintarSucios(); drawRoll(); requestAnimationFrame(animar); }
+ajustarRollo();
+requestAnimationFrame(animar);
+
+// eventos del teatro
+const log = document.getElementById("log");
+function logln(s) { log.textContent = (s + "\n" + log.textContent).slice(0, 3000); }
+document.getElementById("sonar").onclick = () => {
+  if (!ctx) arrancarAudio(); else if (ctx.state === "suspended") ctx.resume();
+  const b = document.getElementById("sonar"); b.classList.add("andando"); b.title = "el sonido está activo";
+};
+let senaTimer = null;
+function mostrarSena(texto) {
+  const el = document.getElementById("sena"); el.textContent = texto; el.classList.add("visible");
+  clearTimeout(senaTimer); senaTimer = setTimeout(() => el.classList.remove("visible"), 2500);
+}
+if (location.search.includes("sonar")) { try { arrancarAudio(); } catch (e) { console.error("no pude arrancar el audio solo:", e); } }   // ?sonar: para pruebas sin click
+if (location.search.includes("paneles")) for (const t of Object.keys(LEYENDA)) asegurar(t + "1", t);
+if (new URLSearchParams(location.search).get("foco")) ampliar(new URLSearchParams(location.search).get("foco"));   // ?paneles&foco=violin1
+if (location.search.includes("prueba")) {   // ?sonar&prueba: una voz de cada instrumento, para probar sin parlantes
+  try {
+    for (const tipo of Object.keys(PERFIL)) { const v = new Sostenida(tipo); v.on(60, 80, 0); v.on(62, 80, 0); v.on(-1, 80, 1); v.off(); }
+    for (const tipo of ["guitarra", "piano"]) { const v = new Golpeada(tipo); v.on(60, 80, 0); v.on(64, 40, 1); v.off(); }
+    console.log("prueba de voces ok");
+  } catch (e) { console.error("prueba de voces falló:", e); }
+}
+const es = new EventSource("/eventos");
+es.addEventListener("musico", e => { const [n, t] = e.data.split(" "); asegurar(n, t); logln("llegó " + n + " (" + t + ")"); });
+es.addEventListener("obra", e => { const o = JSON.parse(e.data); const el = document.getElementById("obra"); el.textContent = o.nombre.replace(/_/g, " "); el.classList.remove("vacia"); clock.tempo = o.tempo; });
+es.addEventListener("sena", e => { const f = e.data.split(" "); const nombres = { EMPIEZA: "empieza", PARAR: "parar", DESDE: "desde el beat " + f[1], TEMPO: "tempo " + f[1], DINAMICA: "dinámica " + f[1] + " %", FIN: "fin", TERMINO: "fin de la obra" }; mostrarSena(nombres[f[0]] || e.data); logln("seña: " + e.data); });
+es.addEventListener("parte", e => { const p = JSON.parse(e.data); const m = asegurar(p.nombre, p.tipo); m.parte = p.notas; ajustarRollo(); });
+es.addEventListener("tic", e => { const f = e.data.split(" "); clock.beat = +f[1]; clock.tempo = +f[2]; clock.running = f[3] === "1"; clock.at = performance.now(); });
+es.addEventListener("suena", e => { const f = e.data.split(" "); suena(f[0], +f[1], +f[2], +f[3], +f[4], f[5] || "-"); logln(e.data); });
+es.addEventListener("estado", e => { const f = e.data.split(" "); const m = musicos[f[0]]; if (!m) return; m.estado = parseEstado(f); render(m); });
+</script>
+</body>
+</html>

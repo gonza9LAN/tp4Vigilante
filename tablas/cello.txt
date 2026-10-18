@@ -1,0 +1,36 @@
+# Tabla de digitación de cello (cuerda), primera posición. ES INVENTADA, pero consistente.
+# Formato: pitch cuerda dedo posicion. posicion = semitonos sobre la cuerda al aire,
+# dedo 0 = cuerda al aire. La mano derecha es el arco o la púa y no digita.
+# Si una nota está en varias cuerdas, la primera fila es la preferida (la posición más baja).
+FAMILIA cuerda
+MANOS izq:4
+MODO arco
+CUERDAS C:36 G:43 D:50 A:57
+36 C 0 0
+37 C 1 1
+38 C 1 2
+39 C 2 3
+40 C 2 4
+41 C 3 5
+42 C 4 6
+43 G 0 0
+44 G 1 1
+45 G 1 2
+46 G 2 3
+47 G 2 4
+48 G 3 5
+49 G 4 6
+50 D 0 0
+51 D 1 1
+52 D 1 2
+53 D 2 3
+54 D 2 4
+55 D 3 5
+56 D 4 6
+57 A 0 0
+58 A 1 1
+59 A 1 2
+60 A 2 3
+61 A 2 4
+62 A 3 5
+63 A 4 6

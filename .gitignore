@@ -1,50 +1,5 @@
-# BMP images
-*.bmp
-
-# Dependency directories
-_deps/
-
-# CMake generated files
-CMakeFiles/
-CMakeCache.txt
-Makefile
-*.cmake
-
-# Build directories
-/build/
-/out/
-/bin/
-/lib/
-/obj/
-
-# IDE-specific files
-.vscode/
-.idea/
-
-# Logs and temporary files
-*.log
-*.tmp
-*.bak
-*.swp
-
-# OS-specific files
-.DS_Store
-Thumbs.db
-
-# Compiled object files
-*.o
-*.obj
-*.so
-*.dll
-*.dylib
-*.exe
-*.out
-
-# Backup files
-*~
-# Caja negra (se genera al correr la nave)
-caja_negra/
-*.pid
-
-# La solución de referencia se compila aparte
-/build_sol/
+build/
+__pycache__/
+verificador_logs/
+informe_verificador.json
+*.pyc
